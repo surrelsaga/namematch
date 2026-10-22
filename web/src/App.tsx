@@ -92,7 +92,7 @@ export function App() {
           {!!session?.cards.length && <Results cards={session.cards} />}
         </main>
         {/* Stays put while the names scroll, so the chat input is always in reach. */}
-        <aside className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-6 lg:h-[calc(100dvh-3rem)]">
+        <aside className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-6 lg:h-[calc(100dvh_/_var(--zoom)_-_3rem)]">
           <LogsPanel logs={session?.logs ?? []} busy={busy} />
           <Chat chat={session?.chat ?? []} ready={!!session?.cards.length} busy={busy} onSend={feedback} />
         </aside>

@@ -11,16 +11,18 @@
   --color-orange: #ff8a3d;
   --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Space Mono', ui-monospace, monospace;
-  /* Floors so scaling below never makes reading text tiny. */
-  --text-sm: max(0.875rem, 13px);
-  --text-base: max(1rem, 16px);
-  --text-lg: max(1.125rem, 16px);
 }
 
-/* UI scale: every size is in rem, so this one value scales the whole app.
-   80% = how it looked at 80% browser zoom. Borders and shadows stay in px (3px / 4px). */
+/* Desktop renders like 75% browser zoom: everything scales, borders and shadows included.
+   Phones/tablets (< 1024px) stay at 100%. --zoom lets viewport heights undo the zoom. */
 html {
-  font-size: 80%;
+  --zoom: 1;
+}
+@media (min-width: 1024px) {
+  html {
+    zoom: 0.75;
+    --zoom: 0.75;
+  }
 }
 
 /* The one neo-brutalist frame: 3px border, hard shadow, 6px radius. */
@@ -34,5 +36,5 @@ body {
   background: var(--color-paper);
   color: var(--color-ink);
   font-family: var(--font-sans);
-  font-size: var(--text-lg);
+  font-size: 1.125rem;
 }
