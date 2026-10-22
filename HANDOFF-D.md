@@ -16,7 +16,7 @@
 - Click-through checked in headless Chrome at 1280px and 390px: GitHub flow → inputs → generate with tlds → results → feedback round 2, plus the markdown paste flow and the bad-URL message. No console errors, no horizontal scroll at phone width.
 
 ## Not done
-- Not run against Block C's real server yet (it isn't merged). The expectations it must meet are in NOTES.md under "Block D decisions".
+- A full real run (5 to 10 min on the free tier) wasn't watched end to end after the layout change; only the analyze step was.
 - Not tested on a real phone, only a 390px headless viewport.
 - No reload persistence, no "start over" button (reload does that).
 
@@ -24,4 +24,4 @@
 See NOTES.md, "Block D decisions". No contract changes needed.
 
 ## Try it
-- With the real server (after C merges): `pnpm dev`.
+- `pnpm dev`, then open the Vite URL.
