@@ -91,8 +91,8 @@ test('refine returns new feedback cards, updated tlds and the reply', async () =
   expect(out.cards.map((c) => [c.name, c.from, c.round, c.domains.length])).toEqual([['quill', 'feedback', 2, 1]]);
 });
 
-test('a supervisor failure is retried once, then rejects the run', async () => {
+test('a supervisor failure is retried twice, then rejects the run', async () => {
   delete replies.supervisor;
   await expect(generateNames(profile, inputs, log)).rejects.toThrow('no reply for supervisor');
-  expect(calls).toEqual(['supervisor', 'supervisor']);
-}, 15_000);
+  expect(calls).toEqual(['supervisor', 'supervisor', 'supervisor']);
+}, 30_000);

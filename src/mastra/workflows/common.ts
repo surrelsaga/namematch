@@ -40,5 +40,5 @@ export const NameCardSchema = PickedSchema.extend({
   round: z.number(),
 });
 
-/** A failed step runs once more after a pause; mostly for "model is busy" 503s from the API. */
-export const RETRY = { attempts: 1, delay: 5000 };
+/** A failed step runs up to twice more after a pause; mostly for "model is busy" 503s from the API. */
+export const RETRY = { attempts: 2, delay: 8000 };
