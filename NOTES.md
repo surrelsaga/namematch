@@ -54,3 +54,11 @@
 - **Feedback chat:** if the last `chat` turn is the same user message, it isn't repeated in the prompt. Block C can push the user turn either before or after calling.
 - **Retries:** every workflow has `retryConfig: { attempts: 2, delay: 8000 }`, so a failed step runs up to twice more, 8 s apart. Google returned 503 "high demand" in both live trials, and one retry after 5 s was not enough. Namers catch their own errors (see above), so they don't use this. `run.ts` always throws a real `Error` with a readable message (Mastra can hand back a plain object).
 - **Live trial (`scripts/try-agents.ts`)** was run with Block B's real `src/sources` + `src/domains` checked out into the working tree and not committed. With the stubs, all three repo fixtures read as the same fake text.
+
+## Integration decisions
+- **Merge:** `lookups` → `server` → `web` → `agents` on the `integration` branch. Every block's NOTES section is kept. `src/domains` and `src/sources` are Block B's real versions.
+- **`whyItFits` contract change applied** (see `CONTRACT_CHANGES.md`, Done). `refine-names.ts` validates with `FeedbackOutputSchema` directly.
+- **Mock API removed:** `web/mock-api.ts` is gone. The Vite `/api` proxy and the server both use `PORT || 3000`, so an empty `PORT=` still works.
+- **Server tests** fake `src/mastra/run` in `app.test.ts` (short pause, fixed cards) now that `run.ts` calls real models. They never hit the network.
+- **API backoff in `generateJson`:** a 429/500/502/503/504 from the model API is retried up to 3 times. On a 429 it waits for the `retryDelay` Google sends (+1 s), otherwise 8 s, 16 s, 24 s, capped at 60 s. The workflow `retryConfig` stays as the outer layer. Why: in the first live browser run, Google's free tier returned 429 (`GenerateContentInputTokensPerModelPerMinute-FreeTier`, 16k input tokens/min per model, "retryDelay": "46s") and 500s. The 8 s step retries burned all their attempts inside the same quota minute, and the namer gave up ("The namers did not come up with any names").
+- **Free tier is the bottleneck:** a single session can trip the 16k tokens/min limit on `gemma-4-31b-it`, and 500s from that model are frequent. Expect multi-minute steps on the free tier. A paid key or a lower-traffic model would help more than code changes.
