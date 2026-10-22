@@ -1,6 +1,27 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-paper: #fff4e0;
+  --color-ink: #111;
+  --color-yellow: #ffd23f;
+  --color-pink: #ff6b9e;
+  --color-mint: #3ddc97;
+  --color-sky: #5bc0eb;
+  --color-lilac: #b8a1ff;
+  --color-orange: #ff8a3d;
+  --font-sans: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+}
+
+/* The one neo-brutalist frame: 3px border, hard shadow, 6px radius. */
+@utility brut {
+  border: 3px solid var(--color-ink);
+  border-radius: 6px;
+  box-shadow: 4px 4px 0 var(--color-ink);
+}
+
 body {
-  background: #fff4e0;
-  color: #111;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
 }
