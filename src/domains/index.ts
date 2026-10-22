@@ -41,7 +41,7 @@ async function lookup(domain: string, tld: Tld): Promise<DomainStatus> {
   }
 }
 
-// ponytail: unbounded in-memory cache, fine at a few dozen names per session; add a TTL/LRU if the server runs for weeks.
+// NOTE: unbounded in-memory cache, fine at a few dozen names per session; add a TTL/LRU if the server runs for weeks.
 const cache = new Map<string, Promise<DomainStatus>>();
 function status(domain: string, tld: Tld): Promise<DomainStatus> {
   let p = cache.get(domain);

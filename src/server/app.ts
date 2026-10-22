@@ -7,7 +7,7 @@ import { NameInputsSchema } from '../shared/schemas';
 import type { Logger, Session, SessionStatus } from '../shared/types';
 import { readSource } from '../sources';
 
-/** In-memory sessions. ponytail: never evicted, add a TTL sweep if memory grows on the host. */
+/** In-memory sessions. NOTE: never evicted, add a TTL sweep if memory grows on the host. */
 export const sessions = new Map<string, Session>();
 
 const SourceSchema = z.discriminatedUnion('kind', [
