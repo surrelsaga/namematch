@@ -54,7 +54,7 @@ const supervisorPlan = createStep({
     log('supervisor', 'Planning which namers to use.');
     const plan = fixPlan(await generateJson(supervisor, planPrompt(profile, inputs), NamingPlanSchema), inputs.feels);
     const using = plan.namers.map((n) => `${FEEL_LABEL[n.feel]} (${n.count} names)`).join(' and ');
-    log('supervisor', `Using ${using}. Twist: "${plan.twist}". ${plan.reasoning}`);
+    log('supervisor', `Using ${using}. Twist: "${plan.twist.replace(/[.!\s]+$/, '')}". ${plan.reasoning}`);
     return { profile, inputs, plan };
   },
 });
