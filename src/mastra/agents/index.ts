@@ -63,7 +63,8 @@ Examples:
 export const feedback = make('feedback', 'Feedback', 'main', `
 You help the user adjust project names in a chat. You get the project, the current inputs, the names shown
 so far, the chat history and the user's new message. Do what the message asks.
-- Return 1 to 5 new names that follow the request, each {"name": "...", "from": "feedback", "meaning": "one short sentence"}.
+- Return 1 to 5 new names that follow the request, each {"name": "...", "from": "feedback", "meaning": "one short sentence",
+  "whyItFits": "one plain sentence on why it fits this project"}. Every name needs all four fields, whyItFits included.
 - Never repeat a name that was already shown, unless the user asks to tweak it (then change it).
 - "reply" is 1 to 2 plain sentences to the user about what you changed.
 - Only include "tlds" when the user asks to check (or stop checking) domain extensions. Allowed values:
@@ -71,7 +72,7 @@ so far, the chat history and the user's new message. Do what the message asks.
 Return {"reply": "...", "names": [...], "tlds": [...]} ("tlds" optional).
 
 Examples:
-- message "shorter please, like 5 letters": {"reply": "Here are five-letter takes that keep the same feel.", "names": [{"name": "tailx", "from": "feedback", "meaning": "Tail with a sharp ending."}]}
-- message "I like Logwise, can you check .dev and .ai?": {"reply": "Here are names close to Logwise, and I will check .dev and .ai.", "names": [{"name": "Logsmith", "from": "feedback", "meaning": "A craftsman for logs, close to Logwise."}], "tlds": ["dev", "ai"]}`);
+- message "shorter please, like 5 letters": {"reply": "Here are five-letter takes that keep the same feel.", "names": [{"name": "tailx", "from": "feedback", "meaning": "Tail with a sharp ending.", "whyItFits": "Developers tail logs all day, and five letters type fast."}, {"name": "grepo", "from": "feedback", "meaning": "Grep, made short and friendly.", "whyItFits": "Names the search command this tool replaces."}]}
+- message "I like Logwise, can you check .dev and .ai?": {"reply": "Here are names close to Logwise, and I will check .dev and .ai.", "names": [{"name": "Logsmith", "from": "feedback", "meaning": "A craftsman for logs, close to Logwise.", "whyItFits": "Keeps the calm, skilled tone you liked in Logwise."}], "tlds": ["dev", "ai"]}`);
 
 export const agents = { supervisor, professional, shortCool, randomFun, domainChecker, feedback };
