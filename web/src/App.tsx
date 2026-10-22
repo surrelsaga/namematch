@@ -1,8 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import type { Source } from '../../src/shared/types';
+import { Chat } from './Chat';
 import { InputsCard } from './InputsCard';
 import { LogsPanel } from './LogsPanel';
-import { Chat, Results } from './Results';
+import { Results } from './Results';
 import { Button, Card, Chip, Input, TextArea } from './ui';
 import { useSession } from './useSession';
 
@@ -71,13 +72,14 @@ export function App() {
   const inputsLocked = busy || !(status === 'needs-inputs' || (status === 'error' && !session?.cards.length));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
-      <header className="mb-8">
-        <h1 className="brut inline-block bg-yellow px-5 py-2 text-5xl font-bold tracking-tight">Nammit</h1>
-        <p className="mt-4 text-lg">Name your project and check if the domains are free.</p>
-      </header>
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
-        <main className="grid min-w-0 gap-6">
+    <div className="mx-auto w-full max-w-[1800px] px-4 py-8 sm:px-8 lg:px-10">
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_28rem] lg:gap-8 2xl:grid-cols-[minmax(0,1fr)_34rem]">
+        <main className="grid min-w-0 gap-8">
+          {/* Header lives in the left column so the sticky right column starts at the top. */}
+          <header>
+            <h1 className="brut inline-block bg-yellow px-6 py-2 text-6xl font-bold tracking-tight">Nammit</h1>
+            <p className="mt-4 text-xl lg:text-2xl">Name your project and check if the domains are available.</p>
+          </header>
           <SourceCard locked={busy || !!session?.suggested} onStart={start} />
           {session?.suggested && (
             <InputsCard key={session.id} session={session} locked={inputsLocked} onSubmit={generate} />
@@ -87,14 +89,13 @@ export function App() {
               <b>That didn't work.</b> {error ?? session?.error}
             </Card>
           )}
-          {!!session?.cards.length && (
-            <>
-              <Results cards={session.cards} />
-              <Chat chat={session.chat} busy={busy} onSend={feedback} />
-            </>
-          )}
+          {!!session?.cards.length && <Results cards={session.cards} />}
         </main>
-        {session && <LogsPanel logs={session.logs} busy={busy} />}
+        {/* Stays put while the names scroll, so the chat input is always in reach. */}
+        <aside className="flex min-w-0 flex-col gap-6 lg:sticky lg:top-6 lg:h-[calc(100dvh-3rem)]">
+          <LogsPanel logs={session?.logs ?? []} busy={busy} />
+          <Chat chat={session?.chat ?? []} ready={!!session?.cards.length} busy={busy} onSend={feedback} />
+        </aside>
       </div>
     </div>
   );

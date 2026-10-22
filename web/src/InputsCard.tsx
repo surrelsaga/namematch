@@ -5,8 +5,8 @@ import { Button, Card, Chip, Input } from './ui';
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) {
   return (
-    <div className="grid gap-2">
-      <div className="font-bold">{label} {hint && <span className="font-normal text-ink/60">({hint})</span>}</div>
+    <div className="grid gap-3">
+      <div className="text-lg font-bold">{label} {hint && <span className="font-normal text-ink/60">({hint})</span>}</div>
       <div className="flex flex-wrap gap-3">{children}</div>
     </div>
   );
@@ -25,15 +25,15 @@ export function InputsCard({ session, locked, onSubmit }: {
 
   return (
     <Card>
-      <form className="grid gap-5" onSubmit={(e) => {
+      <form className="grid gap-6" onSubmit={(e) => {
         e.preventDefault();
         onSubmit({ ...draft, keep: splitList(keep), avoid: splitList(avoid) });
       }}>
         <div>
-          <h2 className="text-2xl font-bold">Here's what I understood</h2>
-          <p className="mt-1 text-lg">{session.profile?.summary}</p>
+          <h2 className="text-3xl font-bold">Here's what I understood</h2>
+          <p className="mt-2 text-xl">{session.profile?.summary}</p>
         </div>
-        <fieldset disabled={locked} className="grid min-w-0 gap-5">
+        <fieldset disabled={locked} className="grid min-w-0 gap-6">
           <Row label="What is it?">
             {KINDS.map(([k, label]) => (
               <Chip key={k} on={v.kind === k} onClick={() => set(() => ({ kind: k }))}>{label}</Chip>

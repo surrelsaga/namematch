@@ -10,23 +10,24 @@ export function LogsPanel({ logs, busy }: { logs: LogLine[]; busy: boolean }) {
   }, [logs.length, busy]);
 
   return (
-    <Card className="grid gap-3 p-4! lg:sticky lg:top-6">
-      <h2 className="text-xl font-bold">What's happening</h2>
-      <ol ref={list} aria-live="polite" className="flex max-h-[70vh] flex-col gap-2 overflow-y-auto pr-1">
+    <Card className="flex min-h-0 flex-col gap-3 p-4! lg:flex-1 lg:p-5!">
+      <h2 className="text-2xl font-bold">What's happening</h2>
+      <ol ref={list} aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1 max-lg:max-h-[60vh]">
+        {!logs.length && !busy && <li className="text-ink/60">Each step shows up here as it happens.</li>}
         {logs.map((l) => (
           <li key={l.i} className={cx(
-            'flex items-start gap-2 text-sm',
+            'flex flex-col items-start gap-1 text-base sm:flex-row sm:gap-2.5',
             l.level === 'done' && 'font-bold',
             l.level === 'warn' && 'rounded-[4px] bg-pink/40 p-1',
           )}>
-            <Badge tone={ACTORS[l.actor].tone} className="w-32 shrink-0 text-center whitespace-nowrap">{ACTORS[l.actor].label}</Badge>
+            <Badge tone={ACTORS[l.actor].tone} className="shrink-0 text-center whitespace-nowrap sm:w-36">{ACTORS[l.actor].label}</Badge>
             <span className="pt-0.5">{l.text}</span>
           </li>
         ))}
         {busy && (
-          <li className="flex items-center gap-2 text-sm">
-            <span className="w-32 shrink-0">
-              <span className="mx-auto block size-4 animate-spin rounded-full border-[3px] border-ink border-t-transparent" />
+          <li className="flex items-center gap-2.5 text-base">
+            <span className="w-36 shrink-0">
+              <span className="mx-auto block size-5 animate-spin rounded-full border-[3px] border-ink border-t-transparent" />
             </span>
             Working on it…
           </li>
