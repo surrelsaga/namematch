@@ -1,4 +1,4 @@
-import type { Agent } from '@mastra/core/agent';
+import type { Agent, AgentExecutionOptions } from '@mastra/core/agent';
 import type { z } from 'zod';
 
 /** Pull the JSON out of a reply that may have code fences or chatter around it. */
@@ -23,10 +23,10 @@ export function backoffMs(err: unknown, attempt: number): number | null {
   return Math.min(secs ? (secs + 1) * 1000 : 8000 * (attempt + 1), 60_000);
 }
 
-async function generateText(agent: Agent, prompt: string): Promise<string> {
+async function generateText(agent: Agent, prompt: string, options?: AgentExecutionOptions): Promise<string> {
   for (let attempt = 0; ; attempt++) {
     try {
-      return (await agent.generate(prompt)).text;
+      return (await agent.generate(prompt, options ?? {})).text;
     } catch (e) {
       const wait = backoffMs(e, attempt);
       if (wait === null || attempt >= API_RETRIES) throw e;
@@ -36,11 +36,11 @@ async function generateText(agent: Agent, prompt: string): Promise<string> {
 }
 
 /** Non-streaming agent call, final answer only, zod validated, one retry with the error appended. */
-export async function generateJson<T>(agent: Agent, prompt: string, schema: z.ZodType<T>): Promise<T> {
+export async function generateJson<T>(agent: Agent, prompt: string, schema: z.ZodType<T>, options?: AgentExecutionOptions): Promise<T> {
   let next = prompt;
   let lastError = '';
   for (let attempt = 0; attempt < 2; attempt++) {
-    const text = await generateText(agent, next);
+    const text = await generateText(agent, next, options);
     try {
       return schema.parse(JSON.parse(extractJson(text)));
     } catch (e) {

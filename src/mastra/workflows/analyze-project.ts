@@ -2,7 +2,7 @@ import { createStep, createWorkflow } from '@mastra/core/workflows';
 import { z } from 'zod';
 import { AnalyzeOutputSchema } from '../../shared/schemas';
 import type { SourceText } from '../../shared/types';
-import { supervisor } from '../agents';
+import { NO_THINKING, supervisor } from '../agents';
 import { generateJson } from '../generate-json';
 import { RETRY, getLog } from './common';
 
@@ -40,7 +40,8 @@ const supervisorAnalyze = createStep({
   execute: async ({ inputData, requestContext }) => {
     const log = getLog(requestContext);
     log('supervisor', `Reading ${inputData.label}. This can take a minute.`);
-    const out = await generateJson(supervisor, prompt(inputData), AnalyzeOutputSchema);
+    // Reading the source is easy; plan and pick keep the supervisor's thinking.
+    const out = await generateJson(supervisor, prompt(inputData), AnalyzeOutputSchema, { providerOptions: NO_THINKING });
     out.suggested.tlds = []; // domain checks are always the user's call
     log('supervisor', `Read ${inputData.label}. ${out.profile.summary}`);
     log('supervisor', 'Filled in the questions below. Check them and change anything that is off.', 'done');

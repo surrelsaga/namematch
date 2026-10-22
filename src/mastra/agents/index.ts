@@ -3,14 +3,22 @@ import { getModel, type ModelTier } from '../models';
 
 const JSON_ONLY = 'Reply with JSON only: no prose, no markdown, no code fences.';
 
+// Gemma 4 only accepts thinkingLevel "minimal" (off) or "high" (the default); "low", "medium" and
+// thinkingBudget are rejected with a 400. Off cut a namer call from ~80 s and ~3.5k reasoning tokens to ~5 s.
+export const NO_THINKING = { google: { thinkingConfig: { thinkingLevel: 'minimal' as const } } };
+
 // Model is resolved per call, so importing this file never needs env vars (tests, Studio build).
-const make = (id: string, name: string, tier: ModelTier, instructions: string) =>
-  new Agent({ id, name, instructions: `${instructions}\n\n${JSON_ONLY}`, model: () => getModel(tier) });
+// thinks = keep Gemma's default thinking; everyone else answers with it off.
+const make = (id: string, name: string, tier: ModelTier, instructions: string, thinks = false) =>
+  new Agent({
+    id, name, instructions: `${instructions}\n\n${JSON_ONLY}`, model: () => getModel(tier),
+    ...(thinks ? {} : { defaultOptions: { providerOptions: NO_THINKING } }),
+  });
 
 /** Three tasks (analyze, plan, pick); the task rules and examples come in each prompt. */
 export const supervisor = make('supervisor', 'Supervisor', 'main', `
 You lead a small naming studio. You read project descriptions, plan which namers to use,
-and pick the best names. You are practical and plain spoken. Follow the task in each message exactly.`);
+and pick the best names. You are practical and plain spoken. Follow the task in each message exactly.`, true);
 
 const NAMER_RULES = `
 You receive a project profile, the user's inputs, a twist and a count.
@@ -73,6 +81,6 @@ Return {"reply": "...", "names": [...], "tlds": [...]} ("tlds" optional).
 
 Examples:
 - message "shorter please, like 5 letters": {"reply": "Here are five-letter takes that keep the same feel.", "names": [{"name": "tailx", "from": "feedback", "meaning": "Tail with a sharp ending.", "whyItFits": "Developers tail logs all day, and five letters type fast."}, {"name": "grepo", "from": "feedback", "meaning": "Grep, made short and friendly.", "whyItFits": "Names the search command this tool replaces."}]}
-- message "I like Logwise, can you check .dev and .ai?": {"reply": "Here are names close to Logwise, and I will check .dev and .ai.", "names": [{"name": "Logsmith", "from": "feedback", "meaning": "A craftsman for logs, close to Logwise.", "whyItFits": "Keeps the calm, skilled tone you liked in Logwise."}], "tlds": ["dev", "ai"]}`);
+- message "I like Logwise, can you check .dev and .ai?": {"reply": "Here are names close to Logwise, and I will check .dev and .ai.", "names": [{"name": "Logsmith", "from": "feedback", "meaning": "A craftsman for logs, close to Logwise.", "whyItFits": "Keeps the calm, skilled tone you liked in Logwise."}], "tlds": ["dev", "ai"]}`, true);
 
 export const agents = { supervisor, professional, shortCool, randomFun, domainChecker, feedback };
