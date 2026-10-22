@@ -46,6 +46,13 @@ function runJob(session: Session, status: SessionStatus, job: (log: Logger) => P
 
 export const app = new Hono();
 
+// Every error the web app sees is { error: string }.
+app.notFound((c) => c.json({ error: 'not found' }, 404));
+app.onError((err, c) => {
+  console.error(err);
+  return c.json({ error: 'something went wrong on the server' }, 500);
+});
+
 app.use('/api/*', bodyLimit({ maxSize: 100 * 1024, onError: (c) => c.json({ error: 'request too large' }, 413) }));
 
 app.get('/api/health', (c) => c.json({ ok: true }));
