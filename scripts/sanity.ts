@@ -41,7 +41,7 @@ await check('Gemma JSON call', async () => `${await jsonCall('main')} | ${await 
 
 await check('RDAP get.tech and random .tech', async () => {
   const base = 'https://rdap.radix.host/rdap/';
-  const random = `nammit-${Math.random().toString(36).slice(2, 12)}`;
+  const random = `namematch-${Math.random().toString(36).slice(2, 12)}`;
   const t = Date.now();
   const [taken, free] = [await rdap(base, 'get.tech'), await rdap(base, `${random}.tech`)];
   if (taken !== 200) throw new Error(`get.tech returned ${taken}, expected 200 (taken)`);

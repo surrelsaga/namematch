@@ -1,4 +1,6 @@
-# Nammit
+# namematch
+
+Live: https://namematch.tech
 
 Paste your project, get name ideas, and see which domains are free.
 

@@ -77,7 +77,7 @@ export function App() {
         <main className="grid min-w-0 gap-8">
           {/* Header lives in the left column so the sticky right column starts at the top. */}
           <header>
-            <h1 className="brut inline-block bg-yellow px-6 py-2 text-6xl font-bold tracking-tight">Nammit</h1>
+            <h1 className="brut inline-block bg-yellow px-6 py-2 text-6xl font-bold tracking-tight">namematch</h1>
             <p className="mt-4 text-xl lg:text-2xl">Name your project and check if the domains are available.</p>
           </header>
           <SourceCard locked={busy || !!session?.suggested} onStart={start} />

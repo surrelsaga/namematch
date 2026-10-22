@@ -33,7 +33,7 @@ globalThis.fetch = async (url, init) => {
   }
 };
 
-const random = 'xqzvplm7nammit';
+const random = 'xqzvplm7namematch';
 
 await check(`google.* taken and ${random}.* available on all 5 TLDs`, async () => {
   const t = Date.now();
@@ -51,7 +51,7 @@ await check(`google.* taken and ${random}.* available on all 5 TLDs`, async () =
 
 await check('max 4 lookups at once (20 new domains)', async () => {
   peak = 0;
-  const names = Array.from({ length: 4 }, (_, i) => `nammitpeak${i}${Date.now().toString(36)}`);
+  const names = Array.from({ length: 4 }, (_, i) => `namematchpeak${i}${Date.now().toString(36)}`);
   const out = await checkDomains(names, [...TLDS]);
   if (peak > 4) throw new Error(`peak was ${peak}`);
   return `${Object.values(out).flat().length} results, peak ${peak} at once`;
@@ -72,10 +72,10 @@ await check('hanging and failing servers give unknown, not a hang', async () => 
     realFetch(String(url).endsWith('.dev') ? `http://127.0.0.1:${port}/` : 'http://127.0.0.1:1/', init);
   try {
     let t = Date.now();
-    const refused = (await checkDomains(['nammitrefused'], ['com'])).nammitrefused[0].status;
+    const refused = (await checkDomains(['namematchrefused'], ['com'])).namematchrefused[0].status;
     const refusedMs = Date.now() - t;
     t = Date.now();
-    const hung = (await checkDomains(['nammithung'], ['dev'])).nammithung[0].status;
+    const hung = (await checkDomains(['namematchhung'], ['dev'])).namematchhung[0].status;
     const hungMs = Date.now() - t;
     if (refused !== 'unknown' || hung !== 'unknown' || hungMs > 6000) throw new Error(`${refused} ${hung} ${hungMs} ms`);
     return `refused → ${refused} in ${refusedMs} ms, hanging → ${hung} in ${hungMs} ms`;

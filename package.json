@@ -1,5 +1,5 @@
 {
-  "name": "nammit",
+  "name": "namematch",
   "private": true,
   "version": "0.0.0",
   "description": "Name your project and check if the domains are available, using AI agents.",

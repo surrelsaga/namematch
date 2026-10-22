@@ -27,7 +27,7 @@ function parseRepo(url: string): string | null {
 }
 
 async function gh(path: string, accept = 'application/vnd.github+json'): Promise<Response> {
-  const headers: Record<string, string> = { Accept: accept, 'User-Agent': 'nammit' };
+  const headers: Record<string, string> = { Accept: accept, 'User-Agent': 'namematch' };
   if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
   let res: Response;
   try {
