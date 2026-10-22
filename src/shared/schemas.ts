@@ -66,6 +66,6 @@ export const VariantsSchema = z.array(
 /** Feedback agent output. */
 export const FeedbackOutputSchema = z.object({
   reply: z.string(),
-  names: z.array(CandidateSchema).min(1).max(5),
+  names: z.array(CandidateSchema.extend({ whyItFits: z.string() })).min(1).max(5),
   tlds: z.array(TldSchema).max(5).optional(),
 });

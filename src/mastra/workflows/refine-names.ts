@@ -1,8 +1,6 @@
 import { createStep, createWorkflow } from '@mastra/core/workflows';
 import { z } from 'zod';
-import {
-  CandidateSchema, FeedbackOutputSchema, NameInputsSchema, ProjectProfileSchema,
-} from '../../shared/schemas';
+import { FeedbackOutputSchema, NameInputsSchema, ProjectProfileSchema } from '../../shared/schemas';
 import { TLDS } from '../../shared/types';
 import { feedback } from '../agents';
 import { generateJson } from '../generate-json';
@@ -18,11 +16,6 @@ const InputSchema = z.object({
   round: z.number().int().positive(),
 });
 const OutputSchema = z.object({ reply: z.string(), cards: z.array(NameCardSchema), inputs: NameInputsSchema });
-
-// FeedbackOutputSchema plus whyItFits per name, which NameCard needs (see CONTRACT_CHANGES.md).
-const ReplySchema = FeedbackOutputSchema.extend({
-  names: z.array(CandidateSchema.extend({ whyItFits: z.string() })).min(1).max(5),
-});
 
 const feedbackStep = createStep({
   id: 'feedback',
@@ -43,7 +36,7 @@ const feedbackStep = createStep({
       `New message from the user: """${message}"""`,
       'Return {"reply": "...", "names": [{"name": "...", "from": "feedback", "meaning": "...", "whyItFits": "one plain sentence"}], "tlds": [...]}',
     ].join('\n\n');
-    const out = await generateJson(feedback, prompt, ReplySchema);
+    const out = await generateJson(feedback, prompt, FeedbackOutputSchema);
 
     // Drop exact repeats of names already shown, unless that leaves nothing.
     const shown = new Set(cards.map((c) => c.name.toLowerCase()));
