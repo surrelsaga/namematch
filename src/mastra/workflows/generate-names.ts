@@ -2,7 +2,7 @@ import type { Agent } from '@mastra/core/agent';
 import { createStep, createWorkflow } from '@mastra/core/workflows';
 import { z } from 'zod';
 import {
-  CandidatesSchema, NameInputsSchema, NamingPlanSchema, PickResultSchema, ProjectProfileSchema,
+  CandidateSchema, CandidatesSchema, NameInputsSchema, NamingPlanSchema, PickResultSchema, ProjectProfileSchema,
 } from '../../shared/schemas';
 import type { Candidate, Feel, NameInputs, NamingPlan, ProjectProfile } from '../../shared/types';
 import { professional, randomFun, shortCool, supervisor } from '../agents';
@@ -16,6 +16,8 @@ const PICKS = 5;
 const InputSchema = z.object({ profile: ProjectProfileSchema, inputs: NameInputsSchema });
 const PlannedSchema = InputSchema.extend({ plan: NamingPlanSchema });
 const NamerOutSchema = z.object({ candidates: CandidatesSchema });
+// The step sets "from" itself; with thinking off a namer sometimes puts the twist there, which cost a JSON retry.
+const NamerReplySchema = z.array(CandidateSchema.omit({ from: true }));
 
 const brief = (profile: ProjectProfile, inputs: NameInputs) => ({
   project: profile, kind: inputs.kind, audience: inputs.audience, keep: inputs.keep, avoid: inputs.avoid,
@@ -75,7 +77,7 @@ const namer = (feel: Feel, agent: Agent) => createStep({
       ...brief(profile, inputs), twist: plan.twist, count: slot.count, alreadyUsed: [],
     }, null, 2)}`;
     try {
-      const got = await generateJson(agent, prompt, CandidatesSchema);
+      const got = await generateJson(agent, prompt, NamerReplySchema);
       const candidates = got.map((c): Candidate => ({ ...c, from: feel }));
       log(feel, `Returned ${candidates.length}: ${list(candidates.map((c) => c.name))}.`);
       return { candidates };
