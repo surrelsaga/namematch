@@ -10,5 +10,5 @@ if (existsSync('web/dist/index.html')) {
   app.get('*', serveStatic({ path: './web/dist/index.html' }));
 }
 
-const port = Number(process.env.PORT ?? 3000);
+const port = Number(process.env.PORT || 3000);
 serve({ fetch: app.fetch, port }, () => console.log(`Nammit server on http://localhost:${port}`));

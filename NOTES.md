@@ -35,8 +35,7 @@
 - **Sessions are never evicted** (marked `ponytail:` in `app.ts`). Add a TTL sweep if memory becomes a problem on Render.
 
 ## Block D decisions
-- **Testing without Block C:** the Step 0 server only has `/api/health`, so `web/mock-api.ts` is a Vite dev plugin that fakes the section 5 API on top of the Step 0 stubs. Run `MOCK_API=1 pnpm exec vite --config web/vite.config.ts`. Off by default; the normal `/api` proxy is untouched. Delete it once Block C is merged.
-- **What the UI expects from Block C** (the mock does the same): error responses are JSON `{ error: string }` (shown as is); feedback appends the user `ChatTurn` and the agent reply to `session.chat`; refined cards are put in front of `session.cards`; `generate` is allowed again from `error` when there are no cards yet (the inputs card unlocks for a retry).
+- **What the UI expects from Block C**: error responses are JSON `{ error: string }` (shown as is); feedback appends the user `ChatTurn` and the agent reply to `session.chat`; refined cards are put in front of `session.cards`; `generate` is allowed again from `error` when there are no cards yet (the inputs card unlocks for a retry).
 - **Primitives:** `web/src/ui/index.tsx` holds the 5 primitives in one file. `Input` has a `TextArea` sibling for the .md paste box. Badges and pills use a 2px border (3px looked too heavy at that size); everything else is 3px.
 - **Inputs card** stays visible after "Name it", read-only, showing `session.inputs` (so tld changes from feedback show up). Picking a third feel drops the oldest one.
 - **No reload persistence:** a page reload starts over. Add `#<sessionId>` in the URL if that turns out to matter.
