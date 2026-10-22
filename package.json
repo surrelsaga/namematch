@@ -4,10 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,web -c yellow,cyan \"tsx watch --env-file=.env src/server/index.ts\" \"vite --config web/vite.config.ts\"",
+    "dev": "concurrently -n server,web -c yellow,cyan \"tsx watch --env-file=.env --import ./instrument.mjs src/server/index.ts\" \"vite --config web/vite.config.ts\"",
     "mastra:dev": "PORT=4111 mastra dev --dir src/mastra",
     "build": "vite build --config web/vite.config.ts",
-    "start": "tsx --env-file=.env src/server/index.ts",
+    "start": "tsx --env-file-if-exists=.env --import ./instrument.mjs src/server/index.ts",
     "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit",
     "check": "pnpm typecheck && pnpm test && pnpm build",
@@ -17,6 +17,8 @@
     "@ai-sdk/google": "^4.0.102",
     "@hono/node-server": "^2.1.5",
     "@mastra/core": "^1.78.0",
+    "@mastra/observability": "^1.21.0",
+    "@sentry/node": "^11.8.0",
     "ai": "^7.0.148",
     "hono": "^4.13.13",
     "ollama-ai-provider-v2": "^4.0.1",
@@ -37,5 +39,9 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
-  }
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "packageManager": "pnpm@12.9.1"
 }
