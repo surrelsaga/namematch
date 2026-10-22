@@ -8,7 +8,7 @@ function DomainPill({ d }: { d: DomainResult }) {
       <a href={d.registerUrl} target="_blank" rel="noreferrer" aria-label={`Register ${d.domain}`} className="group">
         <Badge big tone="bg-mint" className="font-mono">
           {d.domain}
-          <span className="ml-2 rounded-[3px] bg-ink px-2 py-0.5 font-sans text-white group-hover:underline">register →</span>
+          <span className="ml-2 inline-block rounded-[3px] bg-ink px-2 py-0.5 font-sans whitespace-nowrap text-white group-hover:underline">register →</span>
         </Badge>
       </a>
     ) : <Badge big tone="bg-mint" className="font-mono">{d.domain} · available</Badge>;
@@ -44,7 +44,7 @@ export function Results({ cards }: { cards: NameCard[] }) {
   return rounds.map((r) => (
     <section key={r} className="grid gap-4">
       <h2 className="text-3xl font-bold">{r === 1 ? 'Your names' : `Round ${r}`}</h2>
-      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(min(20rem,100%),1fr))]">
+      <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(min(24rem,100%),1fr))]">
         {cards.filter((c) => c.round === r).map((c) => <NameCardView key={c.id} card={c} />)}
       </div>
     </section>
