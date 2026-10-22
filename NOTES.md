@@ -75,3 +75,10 @@
 - **`pnpm start`** uses `--env-file-if-exists=.env`: Render has no `.env` file (plain `--env-file` would fail to start), and real env vars win over `.env` anyway. The server still runs through `tsx` (no server build step). That's why the Render build installs dev deps.
 - **`engines.node >=24`** (`--env-file-if-exists` needs Node 22.9+, local is 24) and **`packageManager: pnpm@12.9.1`**, so Render uses the same Node and pnpm.
 - **Render settings:** build `pnpm install --prod=false && pnpm build`, start `pnpm start`, **health check path `/api/health`**, env vars from PLAN section 10 plus `NODE_ENV=production` (`PORT` is set by Render). `pnpm mastra:dev` (Studio) is not preloaded with Sentry.
+
+## Thinking limits (after Sentry run 1)
+- **Gemma 4 thinking is on or off, nothing in between.** `thinkingLevel: "minimal"` turns it off. "high" is the same as the default. `"low"`, `"medium"` and any `thinkingBudget` get a 400 from both Gemma models. `scripts/try-thinking.ts` measures one namer call per setting.
+- **Off:** the namers, the domain checker and Supervisor analyze (`defaultOptions.providerOptions` in `agents/index.ts`; analyze passes it per call through the new optional `options` argument of `generateJson`). **On (default):** Supervisor plan, Supervisor pick and Feedback. The plan was "low" for those, which Gemma doesn't accept.
+- **Why plan, pick and Feedback stay on:** in a `try-agents` trial with thinking off everywhere (290 s instead of 351 s), round 1 names looked about the same, but Feedback gave weaker names: "typo" for Zod (a type library), "vibe", "vld", "sxma". With thinking on, pick dropped "typo" on its own ("means a spelling mistake"). It's one run per setting, so it's a small sample. If speed matters more later, turning these three off saves about a minute per fixture.
+- **Namer replies are validated without `"from"`.** The step overwrites it with the namer's feel. With thinking off, one namer put the twist there ("snappy-rust"), and the JSON retry cost 27 s.
+- **Feedback prompt** rules and examples now show `whyItFits` on every name (Run 1 lost 122 s to a retry when it was missing).
