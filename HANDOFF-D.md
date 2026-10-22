@@ -1,5 +1,12 @@
 # Handoff: Block D (Web UI)
 
+## Size fix (UI scaled down)
+- At 100% zoom the whole UI now looks like it did at 80% zoom. This comes from a single root font size (`html { font-size: 80% }` in `web/src/index.css`). The requested zoom was left as a placeholder, so 80% from the example was used; it's one number to change.
+- Body text never goes under 16px (text floors in the same file). Badges floor at 13px. Headings, name titles, padding, cards, pills and the right column scale down fully.
+- Layout, sticky logs + chat, the "register →" tags and the subtitle are unchanged. Name cards now have a 24rem minimum width so the register tag stays on one line (2 per row at 1280, 3 at 1440/1920).
+- Checked with a scratchpad mock (not committed) at 1280x800, 1440x900, 1920x1080 and 390px: body 16px, smallest text 13px, no horizontal scroll, no clipped badges, chat input on screen on desktop, no console errors.
+- Needs another block: nothing.
+
 ## Feedback round (after merge)
 - **Subtitle** is now "Name your project and check if the domains are available." No "free" wording left in the UI.
 - **Bigger:** page uses up to 1800px; body text 18px; larger chips, buttons, inputs, headings, name cards (5xl names), log rows and chat bubbles. Domain pills are bigger and available ones end in a black "register →" tag that opens the registrar.
