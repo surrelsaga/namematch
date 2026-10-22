@@ -4,7 +4,7 @@ import { AnalyzeOutputSchema } from '../../shared/schemas';
 import type { SourceText } from '../../shared/types';
 import { supervisor } from '../agents';
 import { generateJson } from '../generate-json';
-import { getLog } from './common';
+import { RETRY, getLog } from './common';
 
 const SourceTextSchema = z.object({ label: z.string(), text: z.string() });
 
@@ -52,6 +52,7 @@ export const analyzeProject = createWorkflow({
   id: 'analyzeProject',
   inputSchema: SourceTextSchema,
   outputSchema: AnalyzeOutputSchema,
+  retryConfig: RETRY,
 })
   .then(supervisorAnalyze)
   .commit();

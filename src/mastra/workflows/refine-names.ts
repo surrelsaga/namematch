@@ -6,7 +6,7 @@ import {
 import { TLDS } from '../../shared/types';
 import { feedback } from '../agents';
 import { generateJson } from '../generate-json';
-import { DomainCheckInputSchema, NameCardSchema, getLog, list, type Picked } from './common';
+import { DomainCheckInputSchema, NameCardSchema, RETRY, getLog, list, type Picked } from './common';
 import { domainCheck } from './domain-check';
 
 const InputSchema = z.object({
@@ -65,6 +65,7 @@ export const refineNames = createWorkflow({
   id: 'refineNames',
   inputSchema: InputSchema,
   outputSchema: OutputSchema,
+  retryConfig: RETRY,
 })
   .then(feedbackStep)
   .then(domainCheck)

@@ -13,7 +13,10 @@ async function runFlow(id: 'analyzeProject' | 'generateNames' | 'refineNames', i
   const run = await mastra.getWorkflow(id).createRun({ shouldPersistSnapshot: () => false });
   const res = await run.start({ inputData: inputData as never, requestContext });
   if (res.status === 'success') return res.result as unknown;
-  throw res.status === 'failed' ? res.error : new Error(`Workflow ${id} ended as ${res.status}`);
+  if (res.status !== 'failed') throw new Error(`Workflow ${id} ended as ${res.status}`);
+  // The error can come back as a plain object; always throw a real Error with a readable message.
+  const e: unknown = res.error;
+  throw e instanceof Error ? e : new Error((e as { message?: string } | undefined)?.message ?? String(e));
 }
 
 export async function analyzeProject(

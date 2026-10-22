@@ -7,7 +7,7 @@ import {
 import type { Candidate, Feel, NameInputs, NamingPlan, ProjectProfile } from '../../shared/types';
 import { professional, randomFun, shortCool, supervisor } from '../agents';
 import { generateJson } from '../generate-json';
-import { DomainCheckInputSchema, FEEL_LABEL, NameCardSchema, getLog, list, type Picked } from './common';
+import { DomainCheckInputSchema, FEEL_LABEL, NameCardSchema, RETRY, getLog, list, type Picked } from './common';
 import { domainCheck } from './domain-check';
 
 const TOTAL = 10;
@@ -145,6 +145,7 @@ export const generateNames = createWorkflow({
   id: 'generateNames',
   inputSchema: InputSchema,
   outputSchema: z.object({ cards: z.array(NameCardSchema) }),
+  retryConfig: RETRY,
 })
   .then(supervisorPlan)
   .parallel([namer('professional', professional), namer('short-cool', shortCool), namer('random-fun', randomFun)])
