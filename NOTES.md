@@ -24,3 +24,12 @@
 ## Observed
 - First sanity run: Google rejected the key in `.env` ("API key not valid"); after Daniel updated it, all 3 checks pass.
 - Latency: a tiny JSON call took ~11 s on `gemma-4-26b-a4b-it` (fast) and ~84 s on `gemma-4-31b-it` (main) in one run. Block A should expect slow supervisor calls and the UI needs the spinner row.
+
+## Block C decisions
+- **Busy flag = session status.** `analyzing`, `generating` and `refining` count as busy and return `409`. No separate flag.
+- **Logs:** `i` starts at 1, so `?after=0` (or no `after`) returns every line.
+- **Generate** needs a read profile (`409` otherwise) and is allowed again from `ready` or `error`; it replaces `cards`. **Feedback** needs cards (`409` otherwise). The round is the highest card round + 1, new cards go in front, the user's message is logged as actor `you`, and the user's chat turn is added right away (the agent's reply is added when the job finishes). `chat` passed to `refineNames` is the history *before* the current message.
+- **Errors:** a failed job sets `status: 'error'` and puts the thrown message in `error` plus a `warn` line from `system`, so Block A/B errors should be plain sentences. The process never crashes on a failed job.
+- **Limits:** request body is capped at 100 KB (`413`), markdown text at 60k chars, feedback message at 2k chars. Bad bodies → `400` with the zod message.
+- **Static:** `src/server/index.ts` serves `web/dist` (with an `index.html` fallback) whenever `web/dist/index.html` exists, without checking `NODE_ENV`. In dev, Vite on its own port still handles the UI.
+- **Sessions are never evicted** (marked `ponytail:` in `app.ts`). Add a TTL sweep if memory becomes a problem on Render.
