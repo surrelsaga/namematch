@@ -1,13 +1,16 @@
 import { expect, test, vi } from 'vitest';
-import { analyzeProject } from '../mastra/run';
+import { analyzeProject, generateNames } from '../mastra/run';
 import type { NameInputs, SessionView } from '../shared/types';
 import { app } from './app';
 
-// Real stubs, wrapped so one test can make analyze fail.
+// Real stubs, wrapped so tests can make a job fail.
 vi.mock('../mastra/run', async (importOriginal) => {
   const real = await importOriginal<typeof import('../mastra/run')>();
-  return { ...real, analyzeProject: vi.fn(real.analyzeProject) };
+  return { ...real, analyzeProject: vi.fn(real.analyzeProject), generateNames: vi.fn(real.generateNames) };
 });
+
+// Registered before any request: Hono cannot add routes once its router is built.
+app.get('/api/test-throw', () => { throw new Error('boom'); });
 
 const post = (path: string, body: unknown) =>
   app.request(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -93,4 +96,73 @@ test('bad input: 400 and 404', async () => {
   const id = await create();
   await waitWhile(id, 'analyzing');
   expect((await post(`/api/sessions/${id}/generate`, { inputs: { ...inputs, feels: [] } })).status).toBe(400);
+});
+
+// Behaviors the web app (Block D) relies on.
+
+async function readySession() {
+  const id = await create();
+  await waitWhile(id, 'analyzing');
+  expect((await post(`/api/sessions/${id}/generate`, { inputs })).status).toBe(202);
+  expect((await waitWhile(id, 'generating')).status).toBe('ready');
+  return id;
+}
+
+test('D1: every error is JSON { error: string }', async () => {
+  const id = await create();
+  const responses = [
+    await app.request('/api/test-throw'), // 500
+    await app.request('/api/sessions/missing'), // 404 session
+    await app.request('/api/nope'), // 404 route
+    await post('/api/sessions', {}), // 400
+    await post(`/api/sessions/${id}/generate`, { inputs }), // 409
+    await post('/api/sessions', { source: { kind: 'markdown', text: 'x'.repeat(200_000) } }), // 413
+  ];
+  expect(responses.map((r) => r.status)).toEqual([500, 404, 404, 400, 409, 413]);
+  for (const r of responses) {
+    expect(r.headers.get('content-type')).toContain('application/json');
+    const body = (await r.json()) as { error: unknown };
+    expect(Object.keys(body)).toEqual(['error']);
+    expect(typeof body.error).toBe('string');
+  }
+});
+
+test('D2: feedback adds the user message and the agent reply to chat', { timeout: 30_000 }, async () => {
+  const id = await readySession();
+  await post(`/api/sessions/${id}/feedback`, { message: 'shorter please' });
+  expect((await get(id)).chat).toMatchObject([{ role: 'user', text: 'shorter please' }]); // right away
+  const s = await waitWhile(id, 'refining');
+  expect(s.chat).toHaveLength(2);
+  expect(s.chat[0]).toMatchObject({ role: 'user', text: 'shorter please' });
+  expect(s.chat[1].role).toBe('agent');
+  expect(s.chat[1].text).toBeTruthy();
+});
+
+test('D3: new cards go in front, newest round first', { timeout: 30_000 }, async () => {
+  const id = await readySession();
+  const before = (await get(id)).cards.map((c) => c.id);
+  await post(`/api/sessions/${id}/feedback`, { message: 'one' });
+  await waitWhile(id, 'refining');
+  await post(`/api/sessions/${id}/feedback`, { message: 'two' });
+  const s = await waitWhile(id, 'refining');
+  const rounds = s.cards.map((c) => c.round);
+  expect(rounds).toEqual([...rounds].sort((a, b) => b - a));
+  expect(rounds[0]).toBe(3);
+  expect(s.cards.slice(-before.length).map((c) => c.id)).toEqual(before);
+});
+
+test('D4: generate can be retried after it fails', { timeout: 30_000 }, async () => {
+  vi.mocked(generateNames).mockRejectedValueOnce(new Error('namers timed out'));
+  const id = await create();
+  await waitWhile(id, 'analyzing');
+  expect((await post(`/api/sessions/${id}/generate`, { inputs })).status).toBe(202);
+  let s = await waitWhile(id, 'generating');
+  expect(s.status).toBe('error');
+  expect(s.error).toBe('namers timed out');
+
+  expect((await post(`/api/sessions/${id}/generate`, { inputs })).status).toBe(202);
+  expect((await get(id)).error).toBeUndefined();
+  s = await waitWhile(id, 'generating');
+  expect(s.status).toBe('ready');
+  expect(s.cards.length).toBeGreaterThan(0);
 });
