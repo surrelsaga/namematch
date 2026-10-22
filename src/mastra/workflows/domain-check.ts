@@ -37,7 +37,7 @@ export const domainCheck = createStep({
     log('system', `Checking ${tlds.map((t) => `.${t}`).join(' ')} for ${picked.length} names.`);
     const found = await lookup(picked.map((p) => p.name), tlds);
     const stuck = picked.filter((_, i) => !found[i].some(isFree));
-    const extra = new Map<Picked, NameCard[]>();
+    const extra = new Map<Picked, NameCard>();
 
     if (stuck.length) {
       const facts = stuck.map((p) => {
@@ -57,31 +57,33 @@ export const domainCheck = createStep({
         log('domain-checker', 'Could not come up with variants this time.', 'warn');
       }
 
-      // Keep it to MAX_VARIANTS lookups per round, skip repeats and names that can't be domains.
+      // At most one variant card per name. Try every stuck name's first suggestion, then the second for
+      // names still stuck, and so on, so the MAX_VARIANTS lookups are spread over all of them.
+      const options = new Map(stuck.map((p) =>
+        [p, suggested.find((s) => normalizeName(s.for) === normalizeName(p.name))?.variants ?? []]));
       const seen = new Set(picked.map((p) => normalizeName(p.name)));
-      const tries: { of: Picked; name: string }[] = [];
-      for (const s of suggested) {
-        const of = stuck.find((p) => normalizeName(p.name) === normalizeName(s.for));
-        for (const v of of ? s.variants : []) {
-          const n = normalizeName(v);
-          if (!n || seen.has(n) || tries.length >= MAX_VARIANTS) continue;
-          seen.add(n);
-          tries.push({ of: of!, name: n });
-        }
+      let budget = MAX_VARIANTS;
+      for (let rank = 0; rank < 3 && budget > 0; rank++) {
+        const tries = stuck.filter((p) => !extra.has(p)).flatMap((p) => {
+          const name = normalizeName(options.get(p)?.[rank] ?? '');
+          return name && !seen.has(name) ? [{ of: p, name }] : [];
+        }).slice(0, budget);
+        if (!tries.length) continue;
+        budget -= tries.length;
+        tries.forEach((t) => seen.add(t.name));
+        const vFound = await lookup(tries.map((t) => t.name), tlds);
+        tries.forEach(({ of, name }, i) => {
+          const free = vFound[i].filter(isFree);
+          if (!free.length) return;
+          log('domain-checker', `${list(free.map((d) => d.domain))} available.`);
+          extra.set(of, card({ ...of, name }, vFound[i], of.name));
+        });
       }
-
-      const vFound = await lookup(tries.map((t) => t.name), tlds);
-      tries.forEach(({ of, name }, i) => {
-        const free = vFound[i].filter(isFree);
-        if (!free.length) return;
-        log('domain-checker', `${list(free.map((d) => d.domain))} available.`);
-        extra.set(of, [...(extra.get(of) ?? []), card({ ...of, name }, vFound[i], of.name)]);
-      });
       for (const p of stuck) if (!extra.has(p)) log('domain-checker', `No free variant found for ${p.name}.`);
     }
 
     // Variants sit right after the name they came from.
-    const cards = picked.flatMap((p, i) => [card(p, found[i]), ...(extra.get(p) ?? [])]);
+    const cards = picked.flatMap((p, i) => [card(p, found[i]), ...(extra.has(p) ? [extra.get(p)!] : [])]);
     const withFree = cards.filter((c) => c.domains.some(isFree)).length;
     log('system', `Done: ${cards.length} names, ${withFree} with an available domain.`, 'done');
     return { cards };

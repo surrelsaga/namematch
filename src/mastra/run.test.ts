@@ -1,11 +1,11 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 import type { LogLine, Logger, NameInputs, ProjectProfile, Tld } from '../shared/types';
 
-// Fake lookups, no network: .com taken, "kast" taken everywhere, the rest free.
+// Fake lookups, no network: .com taken, "kast" and "getkast" taken everywhere, the rest free.
 vi.mock('../domains', async (orig) => ({
   ...await orig<typeof import('../domains')>(),
   checkDomains: async (names: string[], tlds: Tld[]) => Object.fromEntries(names.map((n) => [n, tlds.map((tld) => ({
-    tld, domain: `${n}.${tld}`, status: tld === 'com' || n === 'kast' ? 'taken' : 'available',
+    tld, domain: `${n}.${tld}`, status: tld === 'com' || n === 'kast' || n === 'getkast' ? 'taken' : 'available',
   }))])),
 }));
 
@@ -67,8 +67,8 @@ test('names with nothing free get variant cards', async () => {
   const cards = await generateNames(profile, { ...inputs, tlds: ['com', 'dev'] }, log);
   expect(calls).toContain('domain-checker');
   const variants = cards.filter((c) => c.variantOf);
-  expect(variants.map((c) => [c.name, c.variantOf])).toEqual([['getkast', 'kast'], ['kasthq', 'kast']]);
-  expect(cards[1].name).toBe('getkast'); // right after kast
+  expect(variants.map((c) => [c.name, c.variantOf])).toEqual([['kasthq', 'kast']]); // getkast taken, next one tried
+  expect(cards[1].name).toBe('kasthq'); // right after kast
   expect(cards[0].domains.map((d) => d.status)).toEqual(['taken', 'taken']);
 });
 
@@ -91,7 +91,8 @@ test('refine returns new feedback cards, updated tlds and the reply', async () =
   expect(out.cards.map((c) => [c.name, c.from, c.round, c.domains.length])).toEqual([['quill', 'feedback', 2, 1]]);
 });
 
-test('a supervisor failure rejects the run', async () => {
+test('a supervisor failure is retried once, then rejects the run', async () => {
   delete replies.supervisor;
   await expect(generateNames(profile, inputs, log)).rejects.toThrow('no reply for supervisor');
-});
+  expect(calls).toEqual(['supervisor', 'supervisor']);
+}, 15_000);
