@@ -10,7 +10,7 @@
 ## Verification (2026-10-22, against the Step 0 stubs)
 | Check | Result |
 |---|---|
-| `pnpm check` | pass: typecheck, 9 tests (5 server route tests, 33 assertions), build |
+| `pnpm check` | pass: typecheck, tests, build (see the Block D section for the current count) |
 | `pnpm dev` + curl: health | `{"ok":true}` |
 | create session, github (`https://github.com/sharkdp/bat`) | `{sessionId}` → `needs-inputs`, label `sharkdp/bat` |
 | create session, markdown (`logr.md`) | `{sessionId}` → `needs-inputs`, label `logr.md` |
@@ -25,6 +25,16 @@
 | stub that throws | `status: "error"`, `error` = the thrown message, `warn` log line; `/api/health` and new sessions still work afterward |
 | `pnpm build && pnpm start` | one port (3003): `/` HTML, `/assets/*.js` JS, `/some/route` → index.html, `/api/health` JSON, `POST /api/sessions` works, `/api/nope` → JSON 404 |
 | files changed | only `src/server/*`, `NOTES.md`, `HANDOFF-C.md` |
+
+## Block D assumptions (checked 2026-10-22)
+| # | Assumption | Before | Now | Test |
+|---|---|---|---|---|
+| 1 | Errors are JSON `{ "error": "message" }` | **Partly.** 400/404/409/413 were JSON, but an unmatched route (Hono default `404 Not Found` text) and an error thrown inside a route (`Internal Server Error` text) were not | **Fixed:** `app.notFound` and `app.onError` in `app.ts` return JSON (`500` → `{"error":"something went wrong on the server"}`, details only in the server log) | `D1` checks 500, 404 session, 404 route, 400, 409 and 413 all have a JSON content type and exactly `{ error: string }`. Confirmed it fails without the fix |
+| 2 | Feedback adds the user message and the agent reply to `session.chat` | Yes | Same. The user turn is added when the POST arrives, the agent turn when the job is `ready` | `D2` |
+| 3 | New cards go in front (newest round first) | Yes | Same | `D3`: two feedback rounds → rounds sorted descending, round 3 first, the original cards unchanged at the end |
+| 4 | "Name it" can be retried after a failed generate | Yes. `error` is not a busy status, and the profile is kept | Same. Retrying also clears `error` | `D4`: generate fails (mocked) → `error` → generate again → `202` → `ready` with cards |
+
+`pnpm check` passes: 13 tests (9 server route tests).
 
 ## Skipped, mocked, guessed
 - **Mocked:** for the curl error test, a throwing stub was made with a Node loader hook outside the repo (in the session scratchpad) that wraps `analyzeProject`, because the stubs never throw and stub files belong to other blocks. The vitest error test uses `vi.mock` on `../mastra/run` instead. Both mocks wrap the real stubs, and nothing in the repo has a test-only switch.
