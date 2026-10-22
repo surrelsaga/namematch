@@ -11,7 +11,7 @@ export function LogsPanel({ logs, busy }: { logs: LogLine[]; busy: boolean }) {
 
   return (
     <Card className="flex min-h-0 flex-col gap-3 p-4! lg:flex-1 lg:p-5!">
-      <h2 className="text-2xl font-bold">What's happening</h2>
+      <h2 className="text-2xl font-bold">Agents log</h2>
       <ol ref={list} aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-y-auto pr-1 max-lg:max-h-[60vh]">
         {!logs.length && !busy && <li className="text-ink/60">Each step shows up here as it happens.</li>}
         {logs.map((l) => (
