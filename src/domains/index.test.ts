@@ -1,10 +1,12 @@
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { afterEach, expect, test, vi } from 'vitest';
 import { checkDomains, normalizeName } from './index';
 
 afterEach(() => vi.unstubAllGlobals());
 
-const stubFetch = (fn: (url: string) => Promise<Response>) => {
-  const mock = vi.fn((url: string | URL) => fn(String(url)));
+const stubFetch = (fn: (url: string, init?: RequestInit) => Promise<Response>) => {
+  const mock = vi.fn((url: string | URL, init?: RequestInit) => fn(String(url), init));
   vi.stubGlobal('fetch', mock);
   return mock;
 };
@@ -21,6 +23,40 @@ test('normalizeName', () => {
   expect(normalizeName('a'.repeat(30))).toBe('a'.repeat(30));
   expect(normalizeName('a'.repeat(31))).toBeNull();
 });
+
+test('normalizeName on messy input', () => {
+  expect(normalizeName('  My Cool  App  ')).toBe('mycoolapp');
+  expect(normalizeName('ROCKET🚀ship')).toBe('rocketship');
+  expect(normalizeName('🚀🚀')).toBeNull();
+  expect(normalizeName('Café Olé')).toBe('cafeole');
+  expect(normalizeName('Naïve Über')).toBe('naiveuber');
+  expect(normalizeName('C++ & Co.')).toBe('cco');
+  expect(normalizeName('---')).toBeNull();
+  expect(normalizeName('')).toBeNull();
+  expect(normalizeName('   ')).toBeNull();
+  expect(normalizeName('The Most Amazing Productivity Application Ever')).toBeNull();
+});
+
+test('a hanging server gives unknown after 5 s, a refused connection right away', async () => {
+  const server = createServer(() => {}); // accepts, never answers
+  await new Promise<void>((r) => server.listen(0, '127.0.0.1', r));
+  const { port } = server.address() as AddressInfo;
+  const realFetch = globalThis.fetch;
+  // Real fetch and real 5 s timeout, only the URL is swapped: .dev hangs, everything else is refused.
+  stubFetch((url, init) => realFetch(url.endsWith('.dev') ? `http://127.0.0.1:${port}/` : 'http://127.0.0.1:1/', init));
+  try {
+    let t = Date.now();
+    expect((await checkDomains(['refusetest'], ['com'])).refusetest[0].status).toBe('unknown');
+    expect(Date.now() - t).toBeLessThan(1000);
+    t = Date.now();
+    expect((await checkDomains(['hangtest'], ['dev'])).hangtest[0].status).toBe('unknown');
+    expect(Date.now() - t).toBeGreaterThanOrEqual(4900);
+    expect(Date.now() - t).toBeLessThan(6000);
+  } finally {
+    server.closeAllConnections();
+    server.close();
+  }
+}, 10_000);
 
 test('maps RDAP status codes and adds register links only when available', async () => {
   const fetch = stubFetch(async (url) => {
@@ -52,6 +88,13 @@ test('caches known results but retries unknown ones', async () => {
   await checkDomains(['cachetest'], ['com', 'dev']);
   expect(fetch.mock.calls.filter(([u]) => String(u).endsWith('.com'))).toHaveLength(1);
   expect(fetch.mock.calls.filter(([u]) => String(u).endsWith('.dev'))).toHaveLength(2);
+});
+
+test('the same domain asked twice at once is fetched once', async () => {
+  const fetch = stubFetch(async () => new Response('', { status: 404 }));
+  const [a, b] = await Promise.all([checkDomains(['dupetest'], ['ai']), checkDomains(['dupetest', 'DupeTest'], ['ai', 'ai'])]);
+  expect(a.dupetest).toEqual(b.DupeTest);
+  expect(fetch).toHaveBeenCalledTimes(1);
 });
 
 test('runs at most 4 lookups at once', async () => {

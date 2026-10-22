@@ -11,7 +11,8 @@ const MAX_PARALLEL = 4;
 const TIMEOUT_MS = 5000;
 
 export function normalizeName(name: string): string | null {
-  const n = name.toLowerCase().replace(/[\s_]+/g, '').replace(/[^a-z0-9-]/g, '');
+  // NFD splits "é" into "e" + accent mark, so the accent is dropped but the letter kept.
+  const n = name.normalize('NFD').toLowerCase().replace(/[\s_]+/g, '').replace(/[^a-z0-9-]/g, '');
   return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/.test(n) && n.length >= 2 && n.length <= 30 ? n : null;
 }
 
