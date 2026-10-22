@@ -3,10 +3,34 @@ import { analyzeProject, generateNames } from '../mastra/run';
 import type { NameInputs, SessionView } from '../shared/types';
 import { app } from './app';
 
-// Real stubs, wrapped so tests can make a job fail.
-vi.mock('../mastra/run', async (importOriginal) => {
-  const real = await importOriginal<typeof import('../mastra/run')>();
-  return { ...real, analyzeProject: vi.fn(real.analyzeProject), generateNames: vi.fn(real.generateNames) };
+// Fake jobs (no model, no network), wrapped so tests can make a job fail.
+vi.mock('../mastra/run', () => {
+  const pause = () => new Promise((r) => setTimeout(r, 150)); // long enough to observe the busy state
+  const card = (name: string, round: number, from: 'short-cool' | 'feedback' = 'short-cool') => ({
+    id: `${round}-${name}`, name, from, meaning: `${name} meaning`, whyItFits: 'fits', domains: [], round,
+  });
+  return {
+    analyzeProject: vi.fn(async (source: { label: string }, log: (a: string, t: string) => void) => {
+      await pause();
+      log('supervisor', `Read ${source.label}.`);
+      return {
+        profile: { summary: 'A log tool.', keywords: ['logs', 'cli', 'errors'] },
+        suggested: { kind: 'dev-tool', feels: ['short-cool'], audience: 'developers', keep: [], avoid: [], tlds: [] },
+      };
+    }),
+    generateNames: vi.fn(async (_profile: unknown, _inputs: unknown, log: (a: string, t: string) => void) => {
+      await pause();
+      log('supervisor', 'Picked 5.');
+      return ['rydo', 'pooli', 'zipr', 'kast', 'vynl'].map((n) => card(n, 1));
+    }),
+    refineNames: vi.fn(async (ctx: { inputs: unknown; round: number }) => {
+      await pause();
+      return {
+        reply: 'Here are two calmer options.', inputs: ctx.inputs,
+        cards: ['quill', 'brevo'].map((n) => card(n, ctx.round, 'feedback')),
+      };
+    }),
+  };
 });
 
 // Registered before any request: Hono cannot add routes once its router is built.
