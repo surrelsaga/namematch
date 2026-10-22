@@ -1,8 +1,15 @@
 import { beforeEach, expect, test, vi } from 'vitest';
-import type { LogLine, Logger, NameInputs, ProjectProfile } from '../shared/types';
+import type { LogLine, Logger, NameInputs, ProjectProfile, Tld } from '../shared/types';
 
-// Canned replies per agent id instead of model calls. Uses Block B's domain stub
-// (.com taken, "kast" taken everywhere, the rest free).
+// Fake lookups, no network: .com taken, "kast" taken everywhere, the rest free.
+vi.mock('../domains', async (orig) => ({
+  ...await orig<typeof import('../domains')>(),
+  checkDomains: async (names: string[], tlds: Tld[]) => Object.fromEntries(names.map((n) => [n, tlds.map((tld) => ({
+    tld, domain: `${n}.${tld}`, status: tld === 'com' || n === 'kast' ? 'taken' : 'available',
+  }))])),
+}));
+
+// Canned replies per agent id instead of model calls.
 const replies: Record<string, (prompt: string) => unknown> = {};
 const calls: string[] = [];
 vi.mock('./generate-json', () => ({
