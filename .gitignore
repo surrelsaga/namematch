@@ -1,0 +1,21 @@
+# dependencies and builds
+node_modules/
+dist/
+web/dist/
+coverage/
+
+# Mastra local files
+.mastra/
+*.db
+*.db-*
+
+# secrets
+.env
+.env.*
+!.env.example
+
+# local only
+INFO.md
+.claude/settings.local.json
+*.log
+.DS_Store
