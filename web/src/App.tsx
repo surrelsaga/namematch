@@ -74,7 +74,7 @@ export function App() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-8">
       <header className="mb-8">
         <h1 className="brut inline-block bg-yellow px-5 py-2 text-5xl font-bold tracking-tight">Nammit</h1>
-        <p className="mt-4 text-lg">Name your project and check if the domains are free.</p>
+        <p className="mt-4 text-lg">Name your project and check if the domains are available.</p>
       </header>
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         <main className="grid min-w-0 gap-6">
