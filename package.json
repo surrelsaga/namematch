@@ -2,6 +2,8 @@
   "name": "nammit",
   "private": true,
   "version": "0.0.0",
+  "description": "Name your project and check if the domains are available, using AI agents.",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "concurrently -n server,web -c yellow,cyan \"tsx watch --env-file=.env --import ./instrument.mjs src/server/index.ts\" \"vite --config web/vite.config.ts\"",
