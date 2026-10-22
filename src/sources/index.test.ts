@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { afterEach, expect, test, vi } from 'vitest';
 import { readSource } from './index';
 
@@ -27,6 +28,26 @@ test('markdown is trimmed to 12k chars', async () => {
   await expect(readSource({ kind: 'markdown', text: '  \n' })).rejects.toThrow('empty');
 });
 
+test.each(['log-tool.md', 'todo-app.md'])('reads the %s fixture', async (file) => {
+  const text = readFileSync(`fixtures/${file}`, 'utf8');
+  const out = await readSource({ kind: 'markdown', text, filename: file });
+  expect(out).toEqual({ label: file, text: text.trim() });
+  expect(out.text).toMatch(/^# \S/);
+});
+
+test('a huge README still fits in 12k', async () => {
+  stubGithub({
+    '/repos/a/b': () => Response.json(repoInfo),
+    '/readme': () => new Response('r'.repeat(50_000)),
+    '/package.json': () => new Response('p'.repeat(50_000)),
+  });
+  const out = await readSource({ kind: 'github', url: 'https://github.com/a/b' });
+  expect(out.text.length).toBeLessThanOrEqual(12_000);
+  expect(out.text).toContain(`\n${'r'.repeat(8_000)}\n`);
+  expect(out.text).toContain(`## package.json\n${'p'.repeat(1_500)}`);
+  expect(out.text).not.toContain('p'.repeat(1_501));
+});
+
 test('combines repo info, README and manifests', async () => {
   vi.stubEnv('GITHUB_TOKEN', 'tok');
   const fetch = stubGithub({
@@ -46,7 +67,9 @@ test('combines repo info, README and manifests', async () => {
 
 test('clear errors', async () => {
   await expect(readSource({ kind: 'github', url: 'https://gitlab.com/a/b' })).rejects.toThrow('Not a GitHub repo URL');
-  await expect(readSource({ kind: 'github', url: 'https://github.com/only-owner' })).rejects.toThrow('Not a GitHub repo URL');
+  for (const url of ['https://github.com/only-owner', 'not a url at all', '', 'https://github.com.evil.io/a/b']) {
+    await expect(readSource({ kind: 'github', url })).rejects.toThrow('Not a GitHub repo URL');
+  }
 
   stubGithub({});
   await expect(readSource({ kind: 'github', url: 'https://github.com/a/b' })).rejects.toThrow('Repo not found or private');
