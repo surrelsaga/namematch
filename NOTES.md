@@ -39,6 +39,10 @@
 - **Primitives:** `web/src/ui/index.tsx` holds the 5 primitives in one file. `Input` has a `TextArea` sibling for the .md paste box. Badges and pills use a 2px border (3px looked too heavy at that size); everything else is 3px.
 - **Inputs card** stays visible after "Name it", read-only, showing `session.inputs` (so tld changes from feedback show up). Picking a third feel drops the oldest one.
 - **No reload persistence:** a page reload starts over. Add `#<sessionId>` in the URL if that turns out to matter.
+- **Desktop layout (feedback round):** two columns from `lg` (1024px). Left: header, source, inputs, results. Right (`aside`, 28rem, 34rem from `2xl`): logs on top, chat under it, sticky at `top-6` with height `100dvh - 3rem`, each panel half the height and scrolling inside itself; the chat form sits at the bottom of its panel. The header moved into the left column because above the grid it pushed the sticky column's bottom (the chat input) off screen at scroll 0. Below `lg` everything stacks: source, inputs, results, logs, chat (panels capped at 60vh).
+- **Logs and chat always render,** with empty-state hints before a session or names exist. The chat input is disabled until there are cards.
+- **Sizes:** body is 18px. `Badge` has a `big` prop for domain pills (Tailwind can't reliably override its padding/size through `className`). Available pills end in a black "register →" tag so the link reads as clickable. Name cards fill the column with `auto-fill, minmax(20rem, 1fr)`: 2 per row at 1280/1440, more on wider screens.
+- **Log rows on phones** put the agent badge above the sentence; side by side the fixed-width badge left the text a narrow strip.
 
 ## Block A decisions
 - **Logger:** passed through the Mastra request context (`requestContext.set('log', log)` in `run.ts`, read with `getLog()` in `workflows/common.ts`). Each run gets its own context, so concurrent sessions don't mix logs. Runs started from Studio have no logger and print to the console.
