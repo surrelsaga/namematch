@@ -5,6 +5,7 @@ import { app } from './app';
 
 // Production: serve the built web app, with index.html as the fallback for client routes.
 if (existsSync('web/dist/index.html')) {
+  app.all('/api/*', (c) => c.json({ error: 'not found' }, 404));
   app.use('/*', serveStatic({ root: './web/dist' }));
   app.get('*', serveStatic({ path: './web/dist/index.html' }));
 }
