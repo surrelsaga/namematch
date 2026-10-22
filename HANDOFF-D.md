@@ -1,11 +1,19 @@
 # Handoff: Block D (Web UI)
 
-## Size fix (UI scaled down)
-- At 100% zoom the whole UI now looks like it did at 80% zoom. This comes from a single root font size (`html { font-size: 80% }` in `web/src/index.css`). The requested zoom was left as a placeholder, so 80% from the example was used; it's one number to change.
-- Body text never goes under 16px (text floors in the same file). Badges floor at 13px. Headings, name titles, padding, cards, pills and the right column scale down fully.
-- Layout, sticky logs + chat, the "register →" tags and the subtitle are unchanged. Name cards now have a 24rem minimum width so the register tag stays on one line (2 per row at 1280, 3 at 1440/1920).
-- Checked with a scratchpad mock (not committed) at 1280x800, 1440x900, 1920x1080 and 390px: body 16px, smallest text 13px, no horizontal scroll, no clipped badges, chat input on screen on desktop, no console errors.
-- Needs another block: nothing.
+## Size fix: desktop at 75% zoom
+- **How:** `@media (min-width: 1024px) { html { zoom: 0.75 } }` in `web/src/index.css`. At 100% browser zoom, a laptop/desktop now looks exactly like it did at 75% zoom.
+- **Why CSS zoom:** it scales everything the same way browser zoom does, including px borders, shadows, pills and the container width. The previous attempt (`html { font-size: 80% }` plus 16px text floors) was removed: it only scaled rem values, and the floors kept text large while the rest shrank.
+- **Phones and tablets (< 1024px) aren't zoomed** and look as they did before any scaling.
+- **The sticky column's height divides by the zoom** (`calc(100dvh / var(--zoom) - 3rem)`). Under CSS zoom Chrome shrinks `100dvh` too, and this keeps logs and chat filling the screen.
+- **Checked** in headless Chrome at 1280x800, 1440x900, 1920x1080 (zoom 0.75) and 390px (no zoom), using a scratchpad mock (not committed):
+  - two columns, with logs and chat sticky and the chat input on screen at the top and bottom of the page;
+  - no horizontal scroll;
+  - "register →" tags clear;
+  - "Agents log" title present;
+  - no console errors.
+- **Wide screens:** at 1920 the 1800px container becomes 1350px on screen, so there are side margins. True 75% browser zoom gives the same.
+- **Not checked:** Safari and Firefox zoom behavior.
+- **Needs another block:** nothing.
 
 ## Feedback round (after merge)
 - **Subtitle** is now "Name your project and check if the domains are available." No "free" wording left in the UI.
