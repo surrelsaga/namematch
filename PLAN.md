@@ -332,7 +332,7 @@ Worktrees: `git worktree add ../nammit-a -b agents` (same for `-b lookups`, `-b 
 6. `fixtures/`: 2 sample `.md` project descriptions + 3 public repo URLs (a CLI tool, a web app, a library).
 7. `scripts/sanity.ts`: one Gemma JSON call via `generateJson` (print result + time); RDAP `get.tech` (expect taken) and a random `.tech` (expect available); one GitHub README fetch.
 8. `.env.example`, `.claude/settings.json` (allow pnpm, node, tsx, vitest, git, curl to localhost; `"attribution": { "commit": "", "pr": "" }`), `CLAUDE.md` ("read PLAN.md, find your block, follow section 12"), empty `NOTES.md`.
-9. `pnpm check` passes. One test commit shows only Daniel's name. Push.
+9. `pnpm check` passes. One test commit (e.g. `chore: test commit`) shows only Daniel's name. Push.
 
 ### Block A: Agents + workflows
 - **Build:** the 6 agents (section 8), 3 workflows + shared `domainCheck` step (section 3), real `run.ts`. Pass the `Logger` into steps (Mastra request context or a closure; note the choice in NOTES.md). Register everything in `src/mastra/index.ts`.
@@ -371,4 +371,4 @@ Worktrees: `git worktree add ../nammit-a -b agents` (same for `-b lookups`, `-b 
 3. If stuck or unsure, make the most reasonable call, write it in `NOTES.md`, keep going. Don't wait for Daniel.
 4. Everything must run and be testable alone (stubs, fixtures, mocks).
 5. **Done** = `pnpm check` passes + your "done when" is true. Then write `HANDOFF-<block>.md`: done, not done, decisions made.
-6. **Commits:** Daniel's name only (repo git config, never override). No co-author lines and no "Generated with" lines, in commits or PRs. One short plain line per message (e.g. `Add domain lookup`, `Fix namer JSON retry`). Small commits.
+6. **Commits:** Daniel's name only (repo git config, never override). No co-author lines and no "Generated with" lines, in commits or PRs. One short plain line per message, lowercase, using the conventional prefix: `feat:`, `fix:`, `chore:`, `refactor:` (also `docs:` and `test:` when they fit). Examples: `feat: add domain lookup`, `fix: retry namer JSON once`, `chore: add env example`, `refactor: split source readers`. Small commits.
