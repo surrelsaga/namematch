@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(tsx:*)",
+      "Bash(vitest:*)",
+      "Bash(git:*)",
+      "Bash(curl http://localhost:*)",
+      "Bash(curl -s http://localhost:*)"
+    ]
+  },
+  "attribution": { "commit": "", "pr": "" }
+}

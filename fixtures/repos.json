@@ -1,0 +1,5 @@
+{
+  "cli": "https://github.com/sharkdp/bat",
+  "webapp": "https://github.com/excalidraw/excalidraw",
+  "library": "https://github.com/colinhacks/zod"
+}
