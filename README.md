@@ -28,7 +28,7 @@ Workflows decide the steps and agents make the creative decisions. Agents never 
 ## What it's built with
 
 - [Mastra](https://mastra.ai): agents and workflows.
-- Gemma 4 open models via the Google API: the models behind every agent.
+- Gemma 4 open models: the models behind every agent, through Google's API or locally with Ollama.
 - RDAP: open data for domain checks, no API key needed.
 - Hono: the small server.
 - React + Vite + Tailwind: the web UI.
@@ -36,21 +36,36 @@ Workflows decide the steps and agents make the creative decisions. Agents never 
 
 ## Run it yourself
 
-You need Node 24 or newer, pnpm, and a free Google AI Studio API key.
+Shared setup: Node 24 or newer, pnpm, then:
 
 ```sh
-cp .env.example .env   # then fill in .env
+git clone https://github.com/surrelsaga/namematch && cd namematch
+cp .env.example .env
 pnpm install
-pnpm dev
 ```
 
-Open the Vite URL it prints. To poke at the agents and workflows on their own, run `pnpm mastra:dev` for Mastra Studio (port 4111).
+### Option 1: Gemma on Google's API (easiest)
+
+- Get a free API key from Google AI Studio.
+- In `.env`, set `GOOGLE_GENERATIVE_AI_API_KEY=your key`, `MODEL_ID=gemma-4-31b-it` and `FAST_MODEL_ID=gemma-4-26b-a4b-it`. Leave `MODEL_PROVIDER` empty.
+- Run `pnpm dev` and open the Vite URL it prints.
+- Note: your project description goes to Google's API, and the free tier is rate limited, so a run can take a few minutes.
+
+### Option 2: Gemma on your own machine with Ollama (private)
+
+- Install [Ollama](https://ollama.com) and pull Gemma 4: `ollama pull gemma4:26b`. The 26B is the realistic pick for most laptops (a 16 to 19 GB download). There is also `gemma4:31b` (about 20 GB), and smaller ones like `gemma4:e4b`. See all tags at [ollama.com/library/gemma4](https://ollama.com/library/gemma4).
+- In `.env`, set `MODEL_PROVIDER=ollama`, and set `MODEL_ID` and `FAST_MODEL_ID` to your Ollama tag (the same tag for both is fine, for example `gemma4:26b`). No Google key needed. Set `OLLAMA_BASE_URL` only if Ollama isn't on `http://localhost:11434`.
+- Run `pnpm dev`.
+- What stays on your machine: the model runs locally, so your description never goes to Google. To keep it fully local, upload a `.md` instead of a GitHub link and leave `SENTRY_DSN` empty (Sentry traces include the prompts). Domain checks still send the candidate names, not your description, to the domain registries.
+- Honest notes: this mode is untested. The "thinking off" setting in `src/mastra/agents/index.ts` is Google-only, so on Ollama every agent uses the model's default thinking and runs slower.
+
+To poke at the agents and workflows on their own, run `pnpm mastra:dev` for Mastra Studio (port 4111).
 
 What goes in `.env`:
 
 | Variable | What it is |
 |---|---|
-| `GOOGLE_GENERATIVE_AI_API_KEY` | Your Google API key. |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Your Google API key. Only for Option 1. |
 | `MODEL_PROVIDER` | `google` (default) or `ollama`. |
 | `MODEL_ID` | Model for the Supervisor and Feedback agents, for example `gemma-4-31b-it`. Required. |
 | `FAST_MODEL_ID` | Model for the namers and Domain checker, for example `gemma-4-26b-a4b-it`. Required. |
@@ -77,7 +92,6 @@ A run uses 1 or 2 feels, so your namer is picked next to the others, not instead
 
 - The free Google tier is slow and rate limited, so a run can take several minutes.
 - The hosted demo sends your project description to Google's API.
-- A fully local mode with Ollama exists (`MODEL_PROVIDER=ollama`), but it is untested.
 - Sessions are kept in memory. A server restart or page reload starts over.
 - Only public GitHub repos work. Domain results come from RDAP, so check with a registrar before you rely on one.
 
