@@ -1,8 +1,8 @@
 # namematch
 
-Live: https://namematch.tech
-
 Paste your project, get name ideas, and see which domains are free.
+
+Read the story behind it [here](https://dev.to/daniel_ng/i-gave-up-naming-my-projects-my-agents-do-it-now-1275)
 
 ## What it does
 
